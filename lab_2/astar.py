@@ -12,6 +12,7 @@ goal = (
     (7, 8, 0)
 )
 
+
 # h1: Number of Misplaced Tiles
 def h1(state):
     count = 0
@@ -20,6 +21,20 @@ def h1(state):
             if state[i][j] != 0 and state[i][j] != goal[i][j]:
                 count = count + 1
     return count
+
+# h2: Manhattan Distance
+def h2(state):
+    sum = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0:
+                index = [(r,c) for r, row in enumerate(goal) for c, col in enumerate(row) if col == state[i][j]]
+                sum = sum + abs(i-index[0][0])+ abs(j-index[0][1])
+    return sum
+
+# Combined: h1 + h2
+def combined(state):
+    return max(h1(state), h2(state))
 
 def find_blank(state):
     for i in range(3):
@@ -54,6 +69,10 @@ def aStar(start, heuristic):
     expanded = 0
     while pq:
         f, g, current = heappop(pq)
+        
+        if g < g_cost.get(current, float('inf')):
+            continue
+        
         expanded = expanded + 1
         if current == goal:
             return True, parent, expanded
@@ -78,7 +97,23 @@ def reconstruct(parent, current):
 
 goalFound, parent, expanded = aStar(start, h1)
 if goalFound:
-    print(f"GOAL STATE FOUND AFTER EXPANDING {expanded} states")
+    print(f"GOAL STATE FOUND AFTER EXPANDING {expanded} states using h1: Misplaced Tiles only")
+    for state in reconstruct(parent, goal):
+        display(state)
+else:
+    print(f"GOAL STATE NOT FOUND AFTER EXPANDING {expanded} states")
+    
+goalFound, parent, expanded = aStar(start, h2)
+if goalFound:
+    print(f"GOAL STATE FOUND AFTER EXPANDING {expanded} states using h2: Manhattan Distance only")
+    for state in reconstruct(parent, goal):
+        display(state)
+else:
+    print(f"GOAL STATE NOT FOUND AFTER EXPANDING {expanded} states")
+    
+goalFound, parent, expanded = aStar(start, combined)
+if goalFound:
+    print(f"GOAL STATE FOUND AFTER EXPANDING {expanded} states using h1+h2: Combined Heuristic")
     for state in reconstruct(parent, goal):
         display(state)
 else:
